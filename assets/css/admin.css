@@ -1,0 +1,12 @@
+/* This stylesheet is used to style the admin option form of the plugin. */
+
+
+.cw-wpemaw-right-sidebar-admin .inside .cw-admin-footer{font-size:0.9em;overflow:hidden;border-top:1px solid #ccc;padding-top:5px;}
+.cw-wpemaw-right-sidebar-admin .inside .cw-admin-footer .left-col{float:left;margin-right:20px;}
+.cw-wpemaw-right-sidebar-admin .inside .cw-admin-footer .right-col{float:left;text-align:center;}
+
+.cw-wpemaw-admin-widget{}
+.cw-wpemaw-admin-widget .cw-wpemaw-widget-header{padding-bottom:0.5em;margin-bottom:0.5em;border-bottom:1px dashed #b0b0b0;}
+.cw-wpemaw-admin-widget .cw-wpemaw-widget-row{overflow:hidden;}
+.cw-wpemaw-admin-widget .cw-wpemaw-widget-row .cw-wpemaw-widget-left{float:left;}
+.cw-wpemaw-admin-widget .cw-wpemaw-widget-row .cw-wpemaw-widget-right{float:right;}
