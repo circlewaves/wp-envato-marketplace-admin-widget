@@ -18,73 +18,109 @@
 <div class="cw-wpemaw-admin-widget">
 
 	<?php
-	$cw_wpemaw_option_username = esc_attr( get_option( $cw_wpemaw_pluginSettings[0]['name'] ) ); // Get username
-	$cw_wpemaw_option_api = esc_attr( get_option( $cw_wpemaw_pluginSettings[1]['name'] ) ); // Get API
+
+	$username = esc_attr( get_option( self::$pluginSettings[0]['name'] ) ); // Get username
+	$api_key = esc_attr( get_option(  self::$pluginSettings[1]['name'] ) ); // Get API
+	$show_balance_admin_only= get_option( self::$pluginSettings[2]['name'] ); // If show balance only for admin	
 	
-	if(!$cw_wpemaw_option_username || !$cw_wpemaw_option_api){?>
-		<div class="error below-h2 form-invalid"><p><?php _e('Please <a href="'.admin_url( 'options-general.php?page=' . $cw_wpemaw_plugin_slug ) . '">configure</a> this widget',$cw_wpemaw_plugin_slug);?></p></div>
+	if(!$username || !$api_key){
+		if(current_user_can('manage_options')){	?>
+			<div class="error below-h2 form-invalid"><p><?php _e('Please <a href="'.admin_url( 'options-general.php?page=' . $this->plugin_slug ) . '">configure</a> this widget',$this->plugin_slug);?></p></div>
+		<?php }else{?>
+			<div class="error below-h2 form-invalid"><p><?php _e('There is some error with widget settings. Please, contact with the website administrator.',$this->plugin_slug);?></p></div>
+		<?php }?>
 	<?php }else{
 
 	require_once plugin_dir_path(dirname(__FILE__) ).'includes/Envato_marketplaces.php';
 	
-	$cw_wpemaw_Envato = new Envato_marketplaces($cw_wpemaw_option_api);
-	$cw_wpemaw_Envato->clear_cache();
+	$envatoAPI = new Envato_marketplaces($api_key);
+	
 
+if(isset($_GET['wpemaw_clear_cache']) && ($_GET['wpemaw_clear_cache']==1)){
+	$envatoAPI->clear_cache();
+$_GET['wpemaw_clear_cache']=null;
+unset($_GET);
+}	
+	
+
+
+
+	$account_info = $envatoAPI->account_information($username);
+	if(!isset($account_info)||empty($account_info)||!is_object($account_info)){
+		if(current_user_can('manage_options')){	?>
+			<div class="error below-h2 form-invalid"><p><?php _e('Incorrect username and/or API key. Please, check the widget <a href="'.admin_url( 'options-general.php?page=' . $this->plugin_slug ) . '">options</a> or <a href="?wpemaw_clear_cache=1" title="'.__('Refresh',$this->plugin_slug).'" class="wpemaw-widget-refresh-button dashicons dashicons-update"></a>	',$this->plugin_slug);?></p></div>
+		<?php }else{?>
+			<div class="error below-h2 form-invalid"><p><?php _e('Incorrect username and/or API key. Please, contact with the website administrator or <a href="?wpemaw_clear_cache=1" title="'.__('Refresh',$this->plugin_slug).'" class="wpemaw-widget-refresh-button dashicons dashicons-update"></a>	',$this->plugin_slug);?></p></div>
+		<?php }?>
+		
+	<?php }else{
 	//Get Balance
-	$cw_wpemaw_user_balance=$cw_wpemaw_Envato->balance($cw_wpemaw_option_username);
-
-
-	if(!$cw_wpemaw_user_balance){?>
-		<div class="error below-h2 form-invalid"><p><?php _e('Incorrect username and/or API key. Please, check widget <a href="'.admin_url( 'options-general.php?page=' . $cw_wpemaw_plugin_slug ) . '">options</a>',$cw_wpemaw_plugin_slug);?></p></div>
-	<?php }else{?>
-		<div class="cw-wpemaw-widget-row cw-wpemaw-widget-header">
-			<div class="cw-wpemaw-widget-left">
-				<?php _e('Welcome',$cw_wpemaw_plugin_slug); echo ', <strong>'.$cw_wpemaw_option_username.'</strong>';?> 
+	$current_balance=$envatoAPI->balance($username);	
+	?>
+	
+		<?php // WIDGET HEADER ?>	
+		<div class="wpemaw-widget-row wpemaw-widget-header">
+			<div class="wpemaw-left account-image">
+				<?php if($account_info->image!=''){echo '<img src="'.$account_info->image.'">';}?>
 			</div>
-			<div class="cw-wpemaw-widget-right">
-				<?php _e('Your balance',$cw_wpemaw_plugin_slug); echo ': <strong>$'.$cw_wpemaw_user_balance.'</strong>';?>
+			<div class="wpemaw-left account-user">
+				<div class="account-welcome">
+					<?php _e('Welcome',$this->plugin_slug); echo ', <strong>'.$username.'</strong>';?>
+				</div>
+				<?php if(($show_balance_admin_only && current_user_can('manage_options'))||(!$show_balance_admin_only)){ //hide balance for non-admin users (if option checked)	?>				
+				<div class="account-commission">
+					 <?php _e('Your commission rate is',$this->plugin_slug); ?> <?php echo '<strong>'.($account_info->current_commission_rate*100).'%</strong>'; ?>
+				</div>	
+				<?php }?>
+				<?php if((current_user_can('manage_options'))){ ?>
+				<div class="wpemaw-widget-settings-button-wrapper">
+					<a href="<?php echo admin_url( 'options-general.php?page=' . $this->plugin_slug );?>" title="<?php _e('Widget Settings',$this->plugin_slug); ?>"  class="wpemaw-widget-settings-button dashicons dashicons-admin-generic"></a>
+				</div>	
+				<?php }?>
 			</div>
+			<?php if(($show_balance_admin_only && current_user_can('manage_options'))||(!$show_balance_admin_only)){ //hide balance for non-admin users (if option checked)	?>		
+			<div class="wpemaw-right account-balance-wrapper">
+				<div class="account-balance">
+					<?php _e('Your balance',$this->plugin_slug);?>: <?php echo '<strong>$'.$current_balance.'</strong>'; ?> 
+					<a href="?wpemaw_clear_cache=1" title="<?php _e('Refresh',$this->plugin_slug); ?>" class="wpemaw-widget-refresh-button dashicons dashicons-update"></a>	
+				</div>
+			</div>
+			<?php } ?>
+
 		</div>
-		<h3><?php _e('Verify Purchase Code',$cw_wpemaw_plugin_slug); ?></h3>
-		<?php 
-		//handle form		
-		if(('POST' == $_SERVER['REQUEST_METHOD']) && (isset($_POST['cw_wpemaw_verify_purchase_nonce'])) && (wp_verify_nonce( $_POST['cw_wpemaw_verify_purchase_nonce'], 'cw_wpemaw_verify_purchase' )) ) {
+		<?php // END WIDGET HEADER ?>
+		
 
-			$cw_wpemaw_verify_purchase_code_value=esc_attr($_POST['cw_wpemaw_verify_purchase_code']);
-			if(!$cw_wpemaw_verify_purchase_code_value){
-				echo '<p class="form-invalid">'.__('Please enter purchase code',$cw_wpemaw_plugin_slug).'</p>';
-			}else{
-				echo '<p class="alternate">'.__('Verification result for code').' <strong>'.$cw_wpemaw_verify_purchase_code_value.'</strong></p>';
-				
-				$verify = $cw_wpemaw_Envato->verify_purchase($cw_wpemaw_option_username, $cw_wpemaw_verify_purchase_code_value);
-				if ( isset($verify->buyer) ){
-					echo '<p class="alternate">'.__('Purchase code is valid',$cw_wpemaw_plugin_slug).'</p>';
-					echo '<p class="alternate">';
-					echo '<span>'.__('Item Name',$cw_wpemaw_plugin_slug).': '.$verify->item_name.'</span><br />';
-					echo '<span>'.__('Purchase Date',$cw_wpemaw_plugin_slug).': '.$verify->created_at.'</span><br />';
-					echo '<span>'.__('Buyer',$cw_wpemaw_plugin_slug).': '.$verify->buyer.'</span><br />';
-					echo '<span>'.__('License',$cw_wpemaw_plugin_slug).': '.$verify->licence.'</span>';
-					echo '</p>';
-				}else{
-				 echo '<p class="form-invalid">'.__('Purchase code is not valid',$cw_wpemaw_plugin_slug).'</p>';
-				}	
-				
-			}
 
-			$_POST=null;
 
-		}?>		
 
-		<div class="cw-wpemaw-widget-row">
-			<form method="POST">
-				<?php wp_nonce_field( 'cw_wpemaw_verify_purchase', 'cw_wpemaw_verify_purchase_nonce' );?>
-				<p>
-					<input type="text" class="all-options" id="cw_wpemaw_verify_purchase_code" name="cw_wpemaw_verify_purchase_code" value="" placeholder="<?php _e('Enter purchase code here',$cw_wpemaw_plugin_slug); ?>" /> 	<input class="button-primary" type="submit" value="<?php _e( 'Verify',$cw_wpemaw_plugin_slug); ?>" />
-				</p>
-			</form>			
-		</div>
+		
+<div class="wpemaw-widget-content" id="cw-wpemaw-tabs">
+  <ul>
+    <li><a href="#cw-wpemaw-tab-verify"><?php _e('Verify Purchase',$this->plugin_slug); ?></a></li>
+	<?php if(($show_balance_admin_only && current_user_can('manage_options'))||(!$show_balance_admin_only)){ //hide balance for non-admin users (if option checked)	?>			
+    <li><a href="#cw-wpemaw-tab-week_stats"><?php _e('Week Stats',$this->plugin_slug); ?></a></li>
+    <li><a href="#cw-wpemaw-tab-statement"><?php _e('Statement',$this->plugin_slug); ?></a></li>
+    <li><a href="#cw-wpemaw-tab-monthly"><?php _e('Monthly',$this->plugin_slug); ?></a></li>
+	<?php }?>	
+  </ul>
+  <div id="cw-wpemaw-tab-verify">
+		<?php include_once '_inc_verification.php'; ?>
+  </div>
+	<?php if(($show_balance_admin_only && current_user_can('manage_options'))||(!$show_balance_admin_only)){ //hide balance for non-admin users (if option checked)	?>		
+  <div id="cw-wpemaw-tab-week_stats">
+		<?php  include_once '_inc_week_stats.php'; ?>
+  </div>
+  <div id="cw-wpemaw-tab-statement">
+		<?php  include_once '_inc_statement.php'; ?>
+  </div>
+  <div id="cw-wpemaw-tab-monthly">
+		<?php include_once '_inc_monthly.php'; ?>
+  </div>
+	<?php }?>	
+</div>
 
-	<?php }?>
+	<?php  }?>
 
 
 					

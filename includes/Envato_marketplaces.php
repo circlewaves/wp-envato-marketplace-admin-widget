@@ -137,6 +137,19 @@ class Envato_marketplaces {
       $sales = $this->private_user_data($user_name, 'recent-sales');
       return $this->apply_limit($sales, $limit);
    }
+	 
+  /**
+   * Retrieve statement for your most recent sales.
+   *
+   * @param string $user_name The username attached to your API KEY.
+   * @param int $limit The number of sales to return.
+   * @return array A list of your recent sales.
+   */
+   public function statement($user_name, $limit = null)
+   {
+      $sales = $this->private_user_data($user_name, 'statement');
+      return $this->apply_limit($sales, $limit);
+   }	 
 
   /**
    * Retrieve your account information -- balance, location, name, etc.
