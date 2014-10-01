@@ -67,11 +67,6 @@ unset($_GET);
 				<div class="account-welcome">
 					<?php _e('Welcome',$this->plugin_slug); echo ', <strong>'.$username.'</strong>';?>
 				</div>
-				<?php if(($show_balance_admin_only && current_user_can('manage_options'))||(!$show_balance_admin_only)){ //hide balance for non-admin users (if option checked)	?>				
-				<div class="account-commission">
-					 <?php _e('Your commission rate is',$this->plugin_slug); ?> <?php echo '<strong>'.($account_info->current_commission_rate*100).'%</strong>'; ?>
-				</div>	
-				<?php }?>
 				<?php if((current_user_can('manage_options'))){ ?>
 				<div class="wpemaw-widget-settings-button-wrapper">
 					<a href="<?php echo admin_url( 'options-general.php?page=' . $this->plugin_slug );?>" title="<?php _e('Widget Settings',$this->plugin_slug); ?>"  class="wpemaw-widget-settings-button dashicons dashicons-admin-generic"></a>
