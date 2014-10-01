@@ -6,5 +6,7 @@ This wordpress plugin allows you to verify purchase code right on your WordPress
 ### Changelog
 
 1.0.0 - Initial release
+--
 1.1.0 - Week stats added
-1.2.0 - Removed comission rate (according to Envato API changes)
+--
+1.2.0 - Removed commission rate (according to Envato API changes)
