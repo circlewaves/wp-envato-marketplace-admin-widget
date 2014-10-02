@@ -412,6 +412,7 @@ class Envato_marketplaces {
       if ( empty($url) ) return false;
 
       $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Envato Purchase Code Verifier for WordPress");
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
       $data = curl_exec($ch);
